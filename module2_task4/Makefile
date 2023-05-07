@@ -14,9 +14,9 @@ check:  ## Lints and check for dead links on markdowns using markdownlint-cli an
 
 validate: ## Validates dist/index.html using W3C Hbtn validator
 	make build
-	-git clone https://github.com/holbertonschool/W3C-Validator.git
-	-./W3C-Validator/w3c_validator.py ./dist/index.html
-	-rm -rf ./W3C-Validator
+	- git clone https://github.com/holbertonschool/W3C-Validator.git
+	- ./W3C-Validator/w3c_validator.py ./dist/index.html
+	- rm -rf ./W3C-Validator
 
 help:		## Show help mesages
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
