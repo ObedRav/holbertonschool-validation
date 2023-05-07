@@ -1,22 +1,41 @@
-build: check		## Builds a website using gohugo on the dist folder
+build: ## Generate the website from the markdown and configuration files in the directory dist/ and compile the source code of the application to a binary named awesome-api
+	make check
 	hugo
 
-clean:		## Cleans the dist folder
-	rm -rf dist
+clean: ## Cleanup the content of the directory dist/, the binary awesome-api and the log file awesome-api.log
+	-rm -rf ./dist
+	-make stop
+	-rm ./awesome-api ./awesome-api.log ./coverage-units.out 
 
-post:		## Create a new blog post whose filename and title come from the environment variables POST_TITLE and POST_NAME
+post: ## Create a new blog post whose filename and title come from the environment variables POST_TITLE and POST_NAME.
 	hugo new posts/${POST_NAME}.md
-	sed -i "s/title: .*/title: ${POST_TITLE}/" ./content/posts/${POST_NAME}.md
+	sed -i 's/^title:.*/title: ${POST_TITLE}/g' ./content/posts/${POST_NAME}.md
 
-check:  ## Lints and check for dead links on markdowns using markdownlint-cli and markdown-link-check
-	markdownlint ./content/posts/*.md
-	markdown-link-check ./content/posts/*.md
+run: ## Run the application in background by executing the binary awesome-api, and write logs into a file named awesome-api.log
+	./awesome-api >./awesome-api.log 2>&1 &
 
-validate: ## Validates dist/index.html using W3C Hbtn validator
-	make build
-	- git clone https://github.com/holbertonschool/W3C-Validator.git
-	- ./W3C-Validator/w3c_validator.py ./dist/index.html
-	- rm -rf ./W3C-Validator
+stop: ## Stop the application with the command kill XXXXX where XXXXX is the Process ID of the application. 
+	kill "$(shell pgrep awesome-api)"
 
-help:		## Show help mesages
+test: ## Check expected behaviour of the app
+	make unit-tests
+	make integration-tests
+
+lint: ## Static linting on go files using golangci-lint
+	@golangci-lint run
+
+unit-tests: ## execute (successfully) the Golang unit tests
+	@go test -v -short -coverprofile=coverage-units.out     
+
+integration-tests: ## execute the Golang integration tests
+	@go test -v -coverprofile=coverage-integrations.out
+
+check: ## Markdown linting on syntax and dead links
+	markdown-link-check ./content/posts/*
+	markdownlint ./content/posts/*
+
+validate: ## should validate the file ./dist/index.html by using the command line Holberton’s W3C Validator
+	-./w3c_validator.py ./dist/index.html
+
+help: ## Shows this help message
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
